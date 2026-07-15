@@ -1,12 +1,23 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String?
+  role      String   @default("DRIVER") // ADMIN, DRIVER
+  driverId  String?  @unique // If role is DRIVER, link to Driver profile
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  driver    Driver?  @relation(fields: [driverId], references: [id])
 }
 
 model Driver {
@@ -21,6 +32,7 @@ model Driver {
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
+  user              User?
   trips             Trip[]
 }
 
@@ -41,6 +53,21 @@ model Vehicle {
   maintenances      Maintenance[]
 }
 
+model Supplier {
+  id          String   @id @default(cuid())
+  name        String
+  vatNumber   String?
+  type        String // FUEL, WORKSHOP, HIGHWAY, OTHER
+  phone       String?
+  email       String?
+  address     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  maintenances Maintenance[]
+  documents    Document[]
+}
+
 model Order {
   id                String   @id @default(cuid())
   clientName        String
@@ -55,6 +82,7 @@ model Order {
   updatedAt         DateTime @updatedAt
 
   trip              Trip?
+  documents         Document[]
 }
 
 model Trip {
@@ -62,10 +90,16 @@ model Trip {
   orderId           String   @unique
   driverId          String
   vehicleId         String
+  
+  // Advanced Logistics
+  emptyKm           Int      @default(0)
+  loadedKm          Int      @default(0)
+  
   scheduledDeparture DateTime?
-  actualDeparture   DateTime?
-  actualArrival     DateTime?
-  status            String   @default("PLANNED") // PLANNED, IN_PROGRESS, COMPLETED
+  actualDeparture    DateTime?
+  actualArrival      DateTime?
+  
+  status            String   @default("PLANNED") // PLANNED, DISPATCHED, LOADING, IN_TRANSIT, UNLOADING, COMPLETED
   expenses          Float    @default(0)
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
@@ -73,16 +107,46 @@ model Trip {
   order             Order    @relation(fields: [orderId], references: [id])
   driver            Driver   @relation(fields: [driverId], references: [id])
   vehicle           Vehicle  @relation(fields: [vehicleId], references: [id])
+  events            TripEvent[]
+  documents         Document[]
+}
+
+model TripEvent {
+  id          String   @id @default(cuid())
+  tripId      String
+  eventType   String // DEPARTURE, ARRIVAL_LOAD, END_LOAD, ARRIVAL_UNLOAD, END_UNLOAD
+  timestamp   DateTime @default(now())
+  location    String? // Optional GPS coordinates or address
+  note        String?
+
+  trip        Trip     @relation(fields: [tripId], references: [id])
 }
 
 model Maintenance {
   id                String   @id @default(cuid())
   vehicleId         String
+  supplierId        String?
   description       String
   cost              Float
   date              DateTime @default(now())
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
-  vehicle           Vehicle  @relation(fields: [vehicleId], references: [id])
+  vehicle           Vehicle   @relation(fields: [vehicleId], references: [id])
+  supplier          Supplier? @relation(fields: [supplierId], references: [id])
+}
+
+model Document {
+  id          String   @id @default(cuid())
+  url         String   // Vercel Blob URL
+  type        String   // INVOICE_IN, INVOICE_OUT, DDT, FUEL_RECEIPT
+  title       String?
+  orderId     String?
+  tripId      String?
+  supplierId  String?
+  createdAt   DateTime @default(now())
+  
+  order       Order?    @relation(fields: [orderId], references: [id])
+  trip        Trip?     @relation(fields: [tripId], references: [id])
+  supplier    Supplier? @relation(fields: [supplierId], references: [id])
 }
