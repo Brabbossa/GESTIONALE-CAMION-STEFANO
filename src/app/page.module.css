@@ -1,0 +1,79 @@
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.header {
+  margin-top: 16px;
+}
+
+.title {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.subtitle {
+  color: var(--text-secondary);
+}
+
+.kpiGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 24px;
+}
+
+.kpiCard {
+  padding: 24px;
+  transition: transform 0.2s;
+}
+
+.kpiCard:hover {
+  transform: translateY(-4px);
+}
+
+.kpiCard h3 {
+  font-size: 14px;
+  color: var(--text-secondary);
+  font-weight: 500;
+  margin-bottom: 12px;
+}
+
+.kpiValue {
+  font-size: 36px;
+  font-weight: 700;
+}
+
+.danger {
+  color: var(--danger);
+}
+
+.contentGrid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 24px;
+}
+
+.mainPanel, .sidePanel {
+  padding: 24px;
+  min-height: 400px;
+}
+
+.mainPanel h2, .sidePanel h2 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 24px;
+}
+
+.emptyState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: var(--text-secondary);
+  font-size: 14px;
+  background: rgba(0,0,0,0.2);
+  border-radius: var(--radius);
+  border: 1px dashed var(--border);
+}
